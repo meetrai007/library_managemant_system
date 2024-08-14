@@ -3,32 +3,36 @@ from email.message import EmailMessage
 import datetime
 import json
 
-with open("library_record.json","r") as file:
-    try:
-        library_data=json.load(file)
-    except:
-        library_data={}
+try:
+    with open("library_record.json","r") as file:
+        library_recoard=json.load(file)
+        books=library_recoard["books"]
+        issue_record=library_recoard["issue_record"]
+except:
+        library_recoard={}
+        books=[]
+        issue_record=[]
 
 time=datetime.datetime.now().strftime("%x")
 
-def issue_book():
-    name=str(input("enter your nasme:"))
-    book=str(input("enter book nasme:"))
-    email=str(input("enter your gmail:"))
-    library_data[name]={"time":time,"issued_books":book,"email":email}
+class Library():
+    def __init__(self,books):
+        self.books=books
+        library_recoard["books"]=books
+        with open("library_record.json","w") as file:
+            json.dump(library_recoard,file)
 
-
-def add_recoard(name,time,book,email):
-    library_data[name]={"time":time,"issued_books":book,"email":email}
-
-class Library_recoard():
-    def __init__(self,name,book,email):
-        self.name=name
-        self.book=book
-        self.email=email
-        self.time=time
-        add_recoard(self.name,self.time,self.book,self.email)
-
-s1=Library_recoard("meet","the secret","meetrai101@gmail.com")
-s2=Library_recoard("deep","the secret 2","harmeetsingh77216@gmail.com")
-print(library_data)
+    def borrowbook(self,book,name,date):
+        if book in books:
+            issue_record.append({date:{"name":name,"book":book}})
+            self.books.remove(book)
+        else:
+             print("book not avalible in library")
+                
+    def donatebook(self,book):
+        if book not in books:
+            self.books.append(book)
+        else:
+             print("book not avalible in library")
+         
+Library.donatebook("meet",)
