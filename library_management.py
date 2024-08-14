@@ -26,13 +26,14 @@ class Library:
     "Persuasion","David Copperfield","Madame Bovary","Anna Karenina","The Divine Comedy","Don Quixote","The Iliad","Heart of Darkness",
     "The Grapes of Wrath","The Old Man and the Sea","The Sound and the Fury","The Call of the Wild","The Alchemist","Catch-22","One Hundred Years of Solitude",
     "Beloved","Slaughterhouse-Five","Lolita","Gone with the Wind","The Sun Also Rises","Ulysses","The Metamorphosis",]
-        self.issue_record={}
+        self.issue_record=[]
 
-    def borrowbook(self, book, name, date):
-        if book in books:
-            self.issue_record.append({date: {"name": name, "book": book}})
+    def borrowbook(self, book, name):
+        if book in self.books:
+            self.issue_record.append({time: {"name": name, "book": book}})
             self.books.remove(book)
             print("book issued sussessfully")
+            print(self.issue_record)
         else:
             print("book not avalible in library")
 
@@ -46,9 +47,7 @@ class Library:
         print(f"the total books is {len(self.books)}")
         for i in self.books:
             print(i)
+   
 
-
-
-l1=Library()
-l1.donatebook("harry poter")
-l1.bookslist()
+library1=Library()
+library1.borrowbook("1984","meet")
