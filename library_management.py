@@ -1,5 +1,4 @@
 import smtplib
-from email.message import EmailMessage
 import datetime
 import json
 
@@ -26,14 +25,19 @@ class Library:
     "Persuasion","David Copperfield","Madame Bovary","Anna Karenina","The Divine Comedy","Don Quixote","The Iliad","Heart of Darkness",
     "The Grapes of Wrath","The Old Man and the Sea","The Sound and the Fury","The Call of the Wild","The Alchemist","Catch-22","One Hundred Years of Solitude",
     "Beloved","Slaughterhouse-Five","Lolita","Gone with the Wind","The Sun Also Rises","Ulysses","The Metamorphosis",]
-        self.issue_record=[]
+        self.issue_record={}
 
     def borrowbook(self, book, name):
         if book in self.books:
-            self.issue_record.append({time: {"name": name, "book": book}})
-            self.books.remove(book)
-            print("book issued sussessfully")
-            print(self.issue_record)
+            if name not in self.issue_record:
+                self.issue_record[name]=[{"date": time, "book": book}]
+                self.books.remove(book)
+                print("book issued successfully")
+            else:
+                self.issue_record[name].append({"date": time, "book": book})
+                self.books.remove(book)
+                print("new book issued succesfully")
+
         else:
             print("book not avalible in library")
 
@@ -47,7 +51,13 @@ class Library:
         print(f"the total books is {len(self.books)}")
         for i in self.books:
             print(i)
-   
+
+    def returnbook(self,name):
+        self.issue_record.pop([name])
+        print(self.issue_record)
 
 library1=Library()
 library1.borrowbook("1984","meet")
+library1.borrowbook("Ulysses","meet")
+print(library1.issue_record)
+# library1.returnbook("meet")
