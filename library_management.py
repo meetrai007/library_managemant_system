@@ -1,7 +1,9 @@
 import smtplib
 import datetime
 import json
+import pandas as pd
 
+df=pd.read_csv("example.csv")
 
 time = datetime.datetime.now().strftime("%x")
 books=["To Kill a Mockingbird","1984","The Great Gatsby","The Catcher in the Rye","The Lord of the Rings","Pride and Prejudice",
@@ -31,8 +33,9 @@ class Library:
         if book in self.books:
             new_record=Record(date,name,book)
             self.issue_record.append(new_record)
-            for record in self.issue_record:
-                print(record.name)
+            a=f"\n{date},{name},{book}"
+            with open("example.csv","a") as file:
+                file.write(a)
         else:
             print("book not avalible in library")
 
@@ -50,17 +53,23 @@ class Library:
 
     def returnbook(self):
         name=input("enter your name:")
-        book=input("enter book name:")
-        if name in self.issue_record:
-            self.books.append(book)
-            for objects in self.issue_record:
-                if objects.name==name:
-                    self.issue_record.remove(objects)
-            print (self.issue_record)
-        else:
-            print(f"no record found of {name}")
+        # book=input("enter book name:")
+        for objects in self.issue_record:
+            if objects.name==name:
+                self.issue_record.remove(objects)
+                self.books.append(objects.book)
+                print(f"{objects.name}={objects.book} are removed")
+            else:
+                print(f"no record found of {name}")
+        print (self.issue_record)
+    
+    def viewrecord(self):
+        for objects in self.issue_record:
+            print(f"\ndate-{objects.date}\nstudent_name-{objects.name}\nbookname-{objects.book}")
+            
+
 library1=Library(books)
 # library1.borrowbook()
 library1.borrowbook()
-library1.borrowbook()
-library1.returnbook()
+# library1.borrowbook()
+# library1.viewrecord()
