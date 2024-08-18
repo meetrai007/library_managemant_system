@@ -33,7 +33,7 @@ class Library:
         if book in self.books:
             new_record=Record(date,name,book)
             self.issue_record.append(new_record)
-            a=f"\n{date},{name},{book}"
+            a=f"\n{name},{date},{book}"
             with open("example.csv","a") as file:
                 file.write(a)
         else:
@@ -65,7 +65,7 @@ class Library:
     
     def viewrecord(self):
         for objects in self.issue_record:
-            print(f"\ndate-{objects.date}\nstudent_name-{objects.name}\nbookname-{objects.book}")
+            print(f"\nstudent_name-{objects.name}\ndate-{objects.date}\nbookname-{objects.book}")
             
 
 library1=Library(books)
