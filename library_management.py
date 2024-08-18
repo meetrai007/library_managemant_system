@@ -48,10 +48,19 @@ class Library:
         for indx,bookname in enumerate(self.books,start=1):
             print(f"{indx}. {bookname}")
 
-    def returnbook(self,name,book):
+    def returnbook(self):
+        name=input("enter your name:")
+        book=input("enter book name:")
         if name in self.issue_record:
             self.books.append(book)
-
+            for objects in self.issue_record:
+                if objects.name==name:
+                    self.issue_record.remove(objects)
+            print (self.issue_record)
+        else:
+            print(f"no record found of {name}")
 library1=Library(books)
 # library1.borrowbook()
-library1.bookslist()
+library1.borrowbook()
+library1.borrowbook()
+library1.returnbook()
