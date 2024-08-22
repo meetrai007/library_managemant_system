@@ -41,10 +41,7 @@ class Library:
 
     def donatebook(self):
         book=input("enter book name:")
-        if book not in self.books:
-            self.books.append(book)
-        else:
-            print("book alrady exists in library")
+        self.books.append(book)
 
     def bookslist(self):
         print(f"the total books is {len(self.books)}")
@@ -69,7 +66,35 @@ class Library:
             
 
 library1=Library(books)
-# library1.borrowbook()
-library1.borrowbook()
-# library1.borrowbook()
-# library1.viewrecord()
+
+
+while True:
+    
+    print("""
+            enter your choice what you want to do
+
+            1.borrow a book
+            2.return a book
+            3.check book list
+            4.view record 
+            5.donate a book to library
+            6.exit 
+""")
+    try:
+        choice=int(input("enter a number according to your choice:"))
+    except:
+        print("enter valid input")
+        
+    if choice==1:
+        library1.borrowbook()
+    if choice==2:
+        library1.returnbook()
+    if choice==3:
+        library1.bookslist()
+    if choice==4:
+        library1.viewrecord()
+    if choice==5:
+        library1.donatebook()
+    if choice==6:
+        break
+    
