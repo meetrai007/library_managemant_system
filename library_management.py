@@ -1,100 +1,72 @@
 import smtplib
 import datetime
-import json
+import json,logging
 import pandas as pd
 
-df=pd.read_csv("example.csv")
+# for store all books data from json file to totalbooks variable
+try:
+    with open ("lIbrary_inventry.json","r") as file:
+        totalbooks=json.load(file)
+except:
+    totalbooks={}
 
+# for store all borrow books data from json file to borrowbooks variable
+try:
+    with open ("borrow_books.json","r") as file:
+        borrowbooks=json.load(file)
+except:
+    borrowbooks={}
+
+#for check avlable books in library
+avalable_inventry=totalbooks.copy()
+for bookname_kays in borrowbooks.keys():
+    avalable_inventry[bookname_kays]=totalbooks[bookname_kays]-borrowbooks[bookname_kays]
+    
+# for auto select current date
 time = datetime.datetime.now().strftime("%x")
-books=["To Kill a Mockingbird","1984","The Great Gatsby","The Catcher in the Rye","The Lord of the Rings","Pride and Prejudice",
-    "The Chronicles of Narnia","Animal Farm","Moby-Dick","War and Peace","Crime and Punishment","The Odyssey","Jane Eyre","Brave New World",
-    "Wuthering Heights","The Scarlet Letter","Great Expectations","The Hobbit","Fahrenheit 451","The Adventures of Huckleberry Finn","Les Misérables",
-    "Dracula","Frankenstein","The Picture of Dorian Gray","The Count of Monte Cristo","The Brothers Karamazov","Sense and Sensibility","Emma",
-    "Persuasion","David Copperfield","Madame Bovary","Anna Karenina","The Divine Comedy","Don Quixote","The Iliad","Heart of Darkness",
-    "The Grapes of Wrath","The Old Man and the Sea","The Sound and the Fury","The Call of the Wild","The Alchemist","Catch-22","One Hundred Years of Solitude",
-    "Beloved","Slaughterhouse-Five","Lolita","Gone with the Wind","The Sun Also Rises","Ulysses","The Metamorphosis",]
-     
-class Record:
-    def __init__(self,date,name,book):
-        self.date=date
-        self.name=name
-        self.book=book
 
-class Library:
+"""this is a class to mannage library inventory"""
+class Library_inventry:
+    def __init__(self,totalbooks,borrowbooks,avalable_inventry):
+        self.totalbooks=totalbooks
+        self.avalable_books=avalable_inventry
+        self.borrow_books=borrowbooks
+
+    def check_book_status(self):
+        bookname=input("enter book name: ")
+        if (bookname in self.totalbooks) and (self.totalbooks[bookname]>0):
+            print("book avlable to borrow")
+        else:
+            print("book not avlable")
+    
+    def addbook_in_enventory(self):
+        bookname=input("enter book name to add in inventry: ")
+        book_quantity=int(input("enter quantity of book: "))
+        self.totalbooks[bookname]=book_quantity
+
+     
+library1=Library_inventry(totalbooks,borrowbooks,avalable_inventry)
+
+class Library_record:
     def __init__(self,books):
         self.nbooks=0
         self.books = books
-        self.issue_record=[]
+        self.issue_record={}
 
     def borrowbook(self):
-        name=input("enter your name:")
-        date=time
-        book=input("enter book name:")
-        if book in self.books:
-            new_record=Record(date,name,book)
-            self.issue_record.append(new_record)
-            a=f"\n{name},{date},{book}"
-            with open("example.csv","a") as file:
-                file.write(a)
-        else:
-            print("book not avalible in library")
+        pass
 
     def donatebook(self):
-        book=input("enter book name:")
-        self.books.append(book)
+        pass
 
     def bookslist(self):
-        print(f"the total books is {len(self.books)}")
-        for indx,bookname in enumerate(self.books,start=1):
-            print(f"{indx}. {bookname}")
+        pass
 
     def returnbook(self):
-        name=input("enter your name:")
-        # book=input("enter book name:")
-        for objects in self.issue_record:
-            if objects.name==name:
-                self.issue_record.remove(objects)
-                self.books.append(objects.book)
-                print(f"{objects.name}={objects.book} are removed")
-            else:
-                print(f"no record found of {name}")
-        print (self.issue_record)
+        pass
     
     def viewrecord(self):
-        for objects in self.issue_record:
-            print(f"\nstudent_name-{objects.name}\ndate-{objects.date}\nbookname-{objects.book}")
+        pass
             
 
-library1=Library(books)
-
-
-while True:
-    
-    print("""
-            enter your choice what you want to do
-
-            1.borrow a book
-            2.return a book
-            3.check book list
-            4.view record 
-            5.donate a book to library
-            6.exit 
-""")
-    try:
-        choice=int(input("enter a number according to your choice:"))
-    except:
-        print("enter valid input")
-        
-    if choice==1:
-        library1.borrowbook()
-    if choice==2:
-        library1.returnbook()
-    if choice==3:
-        library1.bookslist()
-    if choice==4:
-        library1.viewrecord()
-    if choice==5:
-        library1.donatebook()
-    if choice==6:
-        break
-    
+# print(library1.avalable_books)
