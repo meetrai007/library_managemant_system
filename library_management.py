@@ -46,6 +46,10 @@ class Library_inventry:
         self.avalable_books=avalable_inventry
         self.borrow_books=borrowbooks
 
+    def inventory_bookslist(self):
+        for book,quantity in self.totalbooks:
+            print(f"bookname:{book} ,quantity:{quantity}")
+
     def check_book_status(self):
         bookname=input("enter book name: ")
         if (bookname in self.totalbooks) and (self.totalbooks[bookname]>0):
@@ -61,15 +65,7 @@ class Library_inventry:
         else:
             self.totalbooks[bookname]=self.totalbooks[bookname]+book_quantity
         save_to_json("library_inventry.json",self.totalbooks)
-    
-    def donatebook_by_student(self,bookname,qunantity):
-        if bookname not in self.totalbooks:
-            self.totalbooks[bookname]=qunantity
-        else:
-            self.totalbooks[bookname]=self.totalbooks[bookname]+qunantity
-        save_to_json("library_inventry.json",self.totalbooks)
 
-        
     def bookremove_from_inventory(self):
         bookname=input("enter book name to add in inventry: ")
         if bookname in self.totalbooks:
@@ -96,6 +92,12 @@ class Library_inventry:
             print("book record not found in borroe book record")
         save_to_json("borrow_books.json",self.borrow_books)
 
+    def donatebook_by_student(self,bookname,qunantity):
+        if bookname not in self.totalbooks:
+            self.totalbooks[bookname]=qunantity
+        else:
+            self.totalbooks[bookname]=self.totalbooks[bookname]+qunantity
+        save_to_json("library_inventry.json",self.totalbooks)
 
 
 """this class for save records of students like name,date,bookname """
@@ -173,11 +175,71 @@ class Library_record:
 library1=Library_inventry(totalbooks,borrowbooks,avalable_inventry)
 library1_record=Library_record(avalable_inventry,library_record)
 
-# print(library1.avalable_books)
-# library1.bookremove_from_inventory()
-# library1.addbook_in_enventory()
-# library1_record.bookslist()
-# print(avalable_inventry)
-# library1_record.returnbook()
-# library1_record.borrowbook()
-# library1_record.viewrecord()
+
+while True:
+    print("########## Welcome to library management app ##########")
+    print("""
+                    choose a option for do any operation
+
+                    1.mannage library inventory
+                    2.student record section 
+                    3.Exit app  
+          """)
+    userchoice=int(input("entere a number 1,2,3: "))
+    if userchoice==1:
+        print("########## Welcome to library inventory ##########")
+        print("""
+                        choose a option for do any operation
+
+                        1.Check book status avlable or not
+                        2.Add books in inventory
+                        3.Remove book frome inventory 
+                        4.view inventory books list 
+                        5.Exit app
+            """)
+        choice=int(input("choose an operation: "))
+        if choice==1:
+            library1.check_book_status()
+        elif choice==2:
+            library1.addbook_in_enventory()
+        elif choice==3:
+            library1.bookremove_from_inventory()
+        elif choice==4:
+            library1.inventory_bookslist
+        elif choice==5:
+            break
+        else:
+            print("enter choice carefully")
+            
+
+    if userchoice==2:
+        print("########## Welcome to student record section ##########")
+        print("""
+                        choose a option for do any operation
+
+                        1.View student record
+                        2.borrow book
+                        3.View avlable books 
+                        4.donate book 
+                        5.return book
+                        6.Exit app
+            """)
+        choice=int(input("choose an operation: "))
+        if choice==1:
+            library1_record.viewrecord()
+        elif choice==2:
+            library1_record.borrowbook()
+        elif choice==3:
+            library1_record.bookslist()
+        elif choice==4:
+            library1_record.donatebook()
+        elif choice==5:
+            library1_record.returnbook()
+        elif choice==6:
+            break
+        else:
+            print("enter choice carefully")
+
+    if userchoice==3:
+        break
+
