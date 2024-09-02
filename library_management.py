@@ -61,6 +61,14 @@ class Library_inventry:
         else:
             self.totalbooks[bookname]=self.totalbooks[bookname]+book_quantity
         save_to_json("library_inventry.json",self.totalbooks)
+    
+    def donatebook_by_student(self,bookname,qunantity):
+        if bookname not in self.totalbooks:
+            self.totalbooks[bookname]=qunantity
+        else:
+            self.totalbooks[bookname]=self.totalbooks[bookname]+qunantity
+        save_to_json("library_inventry.json",self.totalbooks)
+
         
     def bookremove_from_inventory(self):
         bookname=input("enter book name to add in inventry: ")
@@ -86,7 +94,7 @@ class Library_inventry:
                 self.borrow_books[bookname]=self.borrow_books[bookname]-1
         else:
             print("book record not found in borroe book record")
-        save_to_json("library_inventry.json",self.borrow_books)
+        save_to_json("borrow_books.json",self.borrow_books)
 
 
 
@@ -103,8 +111,7 @@ class Library_record:
         if self.avalable_books[book_name]>0:
             if (student_name in self.library_record):
                 if len(self.library_record[student_name])<3:
-                    print("added")
-                    # self.library_record[student_name].append({"date":date,"bookname":book_name})
+                    self.library_record[student_name].append({"date":date,"bookname":book_name})
                 else:
                     print("student allrady borrow three books so no more bookes borrow possible")
             else:
@@ -117,16 +124,51 @@ class Library_record:
 
 
     def donatebook(self):
-        pass
+        bookname=input("Enter book name to donate: ")
+        qunantity=int(input("Enter book qunanty: "))
+        library1.donatebook_by_student(bookname,qunantity)
+        
 
     def bookslist(self):
-        pass
+        for books in self.avalable_books.keys():
+            print(books)
 
     def returnbook(self):
-        pass
+        student_name=input("Enter your name: ")
+        book_name=input("Enter book name to return: ")
+        if student_name in self.library_record:
+            for items in self.library_record[student_name]:
+                if items["bookname"]==book_name:
+                    self.library_record[student_name].remove(items)
+                    library1.return_a_book(book_name)
+                    save_to_json("library_record.json",self.library_record)
+                    print("book returend")
+                    break
+        else:
+            print("student name not found in record")
     
     def viewrecord(self):
-        pass
+        print("""
+            1.view all student record
+            2.serch a student record
+              """)
+        userchoice=int(input("Enter your choice: "))
+        if userchoice==1:
+            for students_name in self.library_record:
+                print(students_name)
+                for items in self.library_record[students_name]:
+                    print(f"date:{items["date"]} book name:{items["bookname"]}")
+        if userchoice==2:
+            studentname=input("Enter student name: ")
+            print(studentname)
+            try:
+                for items in self.library_record[studentname]:
+                    print(f"date:{items["date"]} book name:{items["bookname"]}")
+            except:
+                print("name not found ")
+
+
+        
             
 library1=Library_inventry(totalbooks,borrowbooks,avalable_inventry)
 library1_record=Library_record(avalable_inventry,library_record)
@@ -134,5 +176,8 @@ library1_record=Library_record(avalable_inventry,library_record)
 # print(library1.avalable_books)
 # library1.bookremove_from_inventory()
 # library1.addbook_in_enventory()
-library1_record.borrowbook()
+# library1_record.bookslist()
 # print(avalable_inventry)
+# library1_record.returnbook()
+# library1_record.borrowbook()
+# library1_record.viewrecord()
