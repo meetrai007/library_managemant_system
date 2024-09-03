@@ -2,6 +2,7 @@ import smtplib
 import datetime
 import json,logging
 import pandas as pd
+import re
 
 # for store all books data from json file to totalbooks variable
 try:
@@ -30,12 +31,29 @@ for bookname_kays in borrowbooks.keys():
     avalable_inventry[bookname_kays]=totalbooks[bookname_kays]-borrowbooks[bookname_kays]
     
 # for auto select current date
-time = str(datetime.datetime.now().strftime("%x"))
+today_date_formet=datetime.date.today()
+time=str(datetime.date.today())
 
 # a function to save now data to json file
 def save_to_json(filename,data):
     with open (filename,"w") as file:
         json.dump(data,file)
+
+# this function for send mail
+def send_email(student_mail,name):
+    sender_mail="deeprai22016@outlook.com"
+    password="cfjbvbvwxpeazqwp"
+    recever_mail=student_mail
+    message ="""Subject: this mail from library!!
+
+        """
+    body = f'dear {name} you have more then 15 dayes to hold an book please return the book\n'
+    message=message + body
+    server=smtplib.SMTP("smtp-mail.outlook.com",587)
+    server.starttls()
+    server.login(sender_mail,password)
+    server.sendmail(sender_mail,recever_mail,message)
+    server.quit()
 
 
 
@@ -109,16 +127,17 @@ class Library_record:
     def borrowbook(self):
         student_name=input("enter student name: ")
         book_name=input("Enter book name: ")
+        student_mail=input("enter your mail: ")
         date=time
         if self.avalable_books[book_name]>0:
             if (student_name in self.library_record):
                 if len(self.library_record[student_name])<3:
-                    self.library_record[student_name].append({"date":date,"bookname":book_name})
+                    self.library_record[student_name].append({"date":date,"bookname":book_name,"mail":student_mail})
                 else:
                     print("student allrady borrow three books so no more bookes borrow possible")
             else:
                 self.library_record[student_name]=[]
-                self.library_record[student_name].append({"date":date,"bookname":book_name})
+                self.library_record[student_name].append({"date":date,"bookname":book_name,"mail":student_mail})
             save_to_json("library_record.json",self.library_record)
             library1.borrow_a_book(book_name)
         else:
@@ -169,77 +188,96 @@ class Library_record:
             except:
                 print("name not found ")
 
-
+    def send_alert(self):
+        for student_name in self.library_record:
+            for item in self.library_record[student_name]:
+                converted_date_formet=datetime.datetime.strptime(item["date"], "%Y-%m-%d").date()
+                if today_date_formet - converted_date_formet >= datetime.timedelta(days=15):
+                    send_email(item["mail"],student_name)
+                
         
             
 library1=Library_inventry(totalbooks,borrowbooks,avalable_inventry)
 library1_record=Library_record(avalable_inventry,library_record)
 
-
 while True:
     print("########## Welcome to library management app ##########")
     print("""
-                    choose a option for do any operation
+                    Choose an option for any operation
 
-                    1.mannage library inventory
-                    2.student record section 
-                    3.Exit app  
+                    1. Manage library inventory
+                    2. Student record section
+                    3. Exit app
           """)
-    userchoice=int(input("entere a number 1,2,3: "))
-    if userchoice==1:
-        print("########## Welcome to library inventory ##########")
-        print("""
-                        choose a option for do any operation
+    try:
+        user_choice = int(input("Enter a number 1, 2, 3: "))
+    except:
+        print("envalid choice, please enter number only")
+    if user_choice == 1:
+        while True:
+            print("########## Welcome to library inventory ##########")
+            print("""
+                            Choose an option for any operation
 
-                        1.Check book status avlable or not
-                        2.Add books in inventory
-                        3.Remove book frome inventory 
-                        4.view inventory books list 
-                        5.Exit app
+                            1. Check book status
+                            2. Add books to inventory
+                            3. Remove book from inventory
+                            4. View inventory books list
+                            5. Back to home manu
+                """)
+            try:
+                choice = int(input("choose an operation: "))
+            except:
+                print("envalid choice, please enter number only")    
+            if choice == 1:
+                library1.check_book_status()
+            elif choice == 2:
+                library1.addbook_in_enventory()
+            elif choice == 3:
+                library1.bookremove_from_inventory()
+            elif choice == 4:
+                library1.inventory_bookslist()
+            elif choice == 5:
+                break
+            else:
+                print("Enter choice between 1-5, carefully")
+
+    elif user_choice == 2:
+        while True:
+            print("########## Welcome to student record section ##########")
+            print("""
+                            Choose an option for any operation
+
+                            1. View student record
+                            2. Borrow book
+                            3. View available books
+                            4. Donate book
+                            5. Return book
+                            6. Send alert 
+                            7. Back to home manu
             """)
-        choice=int(input("choose an operation: "))
-        if choice==1:
-            library1.check_book_status()
-        elif choice==2:
-            library1.addbook_in_enventory()
-        elif choice==3:
-            library1.bookremove_from_inventory()
-        elif choice==4:
-            library1.inventory_bookslist
-        elif choice==5:
-            break
-        else:
-            print("enter choice carefully")
-            
+            try:
+                choice2 = int(input("choose an operation: "))
+            except:
+                print("envalid choice, please enter number only")
+            if choice2 == 1:
+                library1_record.viewrecord()
+            elif choice2 == 2:
+                library1_record.borrowbook()
+            elif choice2 == 3:
+                library1_record.bookslist()
+            elif choice2 == 4:
+                library1_record.donatebook()
+            elif choice2 == 5:
+                library1_record.returnbook()
+            elif choice2 == 6:
+                library1_record.send_alert()
+            elif choice2 == 7:
+                break
+            else:
+                print("Enter choice between 1-6,carefully")
 
-    if userchoice==2:
-        print("########## Welcome to student record section ##########")
-        print("""
-                        choose a option for do any operation
-
-                        1.View student record
-                        2.borrow book
-                        3.View avlable books 
-                        4.donate book 
-                        5.return book
-                        6.Exit app
-            """)
-        choice=int(input("choose an operation: "))
-        if choice==1:
-            library1_record.viewrecord()
-        elif choice==2:
-            library1_record.borrowbook()
-        elif choice==3:
-            library1_record.bookslist()
-        elif choice==4:
-            library1_record.donatebook()
-        elif choice==5:
-            library1_record.returnbook()
-        elif choice==6:
-            break
-        else:
-            print("enter choice carefully")
-
-    if userchoice==3:
+    elif user_choice == 3:
         break
-
+    else:
+        print("enter a choice between 1-3")
