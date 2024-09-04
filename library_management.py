@@ -7,7 +7,6 @@ import re
 name_pattren = r"^[a-z 0-9 ]+$"
 bookname_pattren = r"^[A-Za-z0-9\s]+$"
 email_pattren = r"\b[a-z][A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
-book_quantity_pattren = r"[0-9]+"
 
 # for store all books data from json file to totalbooks variable
 try:
@@ -106,11 +105,8 @@ class Library_inventry:
         while True:
             try:
                 book_quantity = int(input("enter quantity of book: "))
-                if re.match(book_quantity_pattren, book_quantity):
-                    break
-                else:
-                    print("enter bookname carefully and in wright format")
-            except:
+                break
+            except Exception as e:
                 print("enter book quantity in numbers")
         try:
             if bookname not in self.totalbooks:
@@ -239,10 +235,7 @@ class Library_record:
         while True:
             try:
                 qunantity = int(input("Enter book qunanty: "))
-                if re.match(book_quantity_pattren, qunantity):
-                    break
-                else:
-                    print("enter book quantity in wright format")
+                break
             except:
                 print("enter book quantity in numbers")
 
