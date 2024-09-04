@@ -243,8 +243,9 @@ class Library_record:
 
     def bookslist(self):
         try:
-            for books in self.avalable_books.keys():
-                print(books)
+            for books,quantity in self.avalable_books.items():
+                if quantity>0:
+                    print(books)
         except Exception as e:
             print("error found", e)
 
