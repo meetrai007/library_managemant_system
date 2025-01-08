@@ -45,8 +45,8 @@ def save_to_json(filename, data):
 def send_email(student_email, name):
     """Sends an email alert to the student."""
     try:
-        sender_email = "deeprai22016@outlook.com"
-        password = "cfjbvbvwxpeazqwp"
+        sender_email = "mailid"
+        password = "app_password"
         receiver_email = student_email
         subject = "Subject: Library Alert\n"
         body = f"Dear {name},\n\nYou have held a book for more than 15 days. Please return it.\n"
