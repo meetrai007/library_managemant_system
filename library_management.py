@@ -1,422 +1,267 @@
 import smtplib
 import datetime
-import json, logging
-import pandas as pd
+import json
 import re
+import logging
 
-name_pattren = r"^[a-z 0-9 ]+$"
-bookname_pattren = r"^[A-Za-z0-9\s]+$"
-email_pattren = r"\b[a-z][A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
+# Regular expressions for input validation
+name_pattern = r"^[a-z 0-9 ]+$"
+bookname_pattern = r"^[A-Za-z0-9\s]+$"
+email_pattern = r"\b[a-z][A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
 
-# for store all books data from json file to totalbooks variable
+# Load books data from JSON files
 try:
-    with open("lIbrary_inventry.json", "r") as file:
-        totalbooks = json.load(file)
-except:
-    totalbooks = {}
+    with open("library_inventory.json", "r") as file:
+        total_books = json.load(file)
+except FileNotFoundError:
+    total_books = {}
 
-# for store all borrow books data from json file to borrowbooks variable
 try:
     with open("borrow_books.json", "r") as file:
-        borrowbooks = json.load(file)
-except:
-    borrowbooks = {}
+        borrowed_books = json.load(file)
+except FileNotFoundError:
+    borrowed_books = {}
 
-# for store all library books issues record from json file to library_record variable
 try:
     with open("library_record.json", "r") as file:
         library_record = json.load(file)
-except:
+except FileNotFoundError:
     library_record = {}
 
-# for check avlable books in library
-avalable_inventry = totalbooks.copy()
-for bookname_kays in borrowbooks.keys():
-    avalable_inventry[bookname_kays] = (
-        totalbooks[bookname_kays] - borrowbooks[bookname_kays]
-    )
+# Calculate available inventory
+available_inventory = total_books.copy()
+for book_name in borrowed_books.keys():
+    available_inventory[book_name] = total_books[book_name] - borrowed_books[book_name]
 
-# for auto select current date
-today_date_formet = datetime.date.today()
-time = str(datetime.date.today())
+today_date = datetime.date.today()
 
-
-# a function to save now data to json file
+# Function to save data to JSON file
 def save_to_json(filename, data):
+    """Saves data to a JSON file."""
     with open(filename, "w") as file:
         json.dump(data, file)
 
-
-# this function for send mail
-def send_email(student_mail, name):
+# Function to send email alert
+def send_email(student_email, name):
+    """Sends an email alert to the student."""
     try:
-        sender_mail = "deeprai22016@outlook.com"
+        sender_email = "deeprai22016@outlook.com"
         password = "cfjbvbvwxpeazqwp"
-        recever_mail = student_mail
-        message = """Subject: this mail from library!!
+        receiver_email = student_email
+        subject = "Subject: Library Alert\n"
+        body = f"Dear {name},\n\nYou have held a book for more than 15 days. Please return it.\n"
+        message = subject + body
 
-            """
-        body = f"dear {name} you have more then 15 dayes to hold an book please return the book\n"
-        message = message + body
         server = smtplib.SMTP("smtp-mail.outlook.com", 587)
         server.starttls()
-        server.login(sender_mail, password)
-        server.sendmail(sender_mail, recever_mail, message)
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, message)
         server.quit()
+        print("Email sent successfully.")
     except Exception as e:
-        print("email not send due to this error", e)
+        logging.error("Failed to send email", exc_info=True)
 
+class LibraryInventory:
+    """Manages library inventory."""
+    def __init__(self, total_books, borrowed_books, available_inventory):
+        self.total_books = total_books
+        self.borrowed_books = borrowed_books
+        self.available_books = available_inventory
 
-"""this is a class to mannage library inventory"""
-
-
-class Library_inventry:
-    def __init__(self, totalbooks, borrowbooks, avalable_inventry):
-        self.totalbooks = totalbooks
-        self.avalable_books = avalable_inventry
-        self.borrow_books = borrowbooks
-
-    def inventory_bookslist(self):
-        try:
-            for book, quantity in self.totalbooks.items():
-                print(f"bookname:{book} ,quantity:{quantity}")
-        except Exception as e:
-            print("error oucer", e)
+    def list_inventory(self):
+        """Lists all books in the inventory."""
+        for book, quantity in self.total_books.items():
+            print(f"Book: {book}, Quantity: {quantity}")
 
     def check_book_status(self):
-        while True:
-            bookname = input("enter book name to check in inventry: ")
-            if re.match(bookname_pattren, bookname):
-                break
+        """Checks if a book is available in the inventory."""
+        book_name = input("Enter book name to check: ")
+        if re.match(bookname_pattern, book_name):
+            if book_name in self.total_books and self.total_books[book_name] > 0:
+                print("Book is available to borrow.")
             else:
-                print("enter bookname carefully and in wright format")
-        if (bookname in self.totalbooks) and (self.totalbooks[bookname] > 0):
-            print("book avlable to borrow")
+                print("Book is not available.")
         else:
-            print("book not avlable")
+            print("Invalid book name format.")
 
-    def addbook_in_enventory(self):
-        while True:
-            bookname = input("enter book name to add in inventry: ")
-            if re.match(bookname_pattren, bookname):
-                break
-            else:
-                print("enter bookname carefully and in wright format")
-        while True:
+    def add_book(self):
+        """Adds a new book to the inventory."""
+        book_name = input("Enter book name to add: ")
+        if re.match(bookname_pattern, book_name):
             try:
-                book_quantity = int(input("enter quantity of book: "))
-                break
-            except Exception as e:
-                print("enter book quantity in numbers")
-        try:
-            if bookname not in self.totalbooks:
-                self.totalbooks[bookname] = book_quantity
-            else:
-                self.totalbooks[bookname] = self.totalbooks[bookname] + book_quantity
-            save_to_json("library_inventry.json", self.totalbooks)
-        except Exception as e:
-            print("an error oucur", e)
-
-    def bookremove_from_inventory(self):
-        while True:
-            bookname = input("enter book name to remove from inventry: ")
-            if re.match(bookname_pattren, bookname):
-                break
-            else:
-                print("enter bookname carefully and in wright format")
-
-        if bookname in self.totalbooks:
-            del self.totalbooks[bookname]
+                quantity = int(input("Enter quantity: "))
+                self.total_books[book_name] = self.total_books.get(book_name, 0) + quantity
+                save_to_json("library_inventory.json", self.total_books)
+                print("Book added successfully.")
+            except ValueError:
+                print("Quantity must be a number.")
         else:
-            print("book not found in inventory")
-        save_to_json("library_inventry.json", self.totalbooks)
+            print("Invalid book name format.")
 
-    def borrow_a_book(self, bookname):
-        try:
-            if self.avalable_books[bookname] > 0:
-                if bookname in self.borrow_books:
-                    self.borrow_books[bookname] = self.borrow_books[bookname] + 1
-                else:
-                    self.borrow_books[bookname] = 1
+    def remove_book(self):
+        """Removes a book from the inventory."""
+        book_name = input("Enter book name to remove: ")
+        if re.match(bookname_pattern, book_name):
+            if book_name in self.total_books:
+                del self.total_books[book_name]
+                save_to_json("library_inventory.json", self.total_books)
+                print("Book removed successfully.")
             else:
-                print("book not avalable for borrow")
-            save_to_json("borrow_books.json", self.borrow_books)
-        except Exception as e:
-            print("an error oucur", e)
+                print("Book not found in inventory.")
+        else:
+            print("Invalid book name format.")
 
-    def return_a_book(self, bookname):
-        try:
-            if bookname in self.borrow_books:
-                if self.borrow_books[bookname] != 0:
-                    self.borrow_books[bookname] = self.borrow_books[bookname] - 1
-            else:
-                print("book record not found in borroe book record")
-            save_to_json("borrow_books.json", self.borrow_books)
-        except Exception as e:
-            print("an error oucur", e)
+    def borrow_book(self, book_name):
+        """Borrows a book from the inventory."""
+        if self.available_books.get(book_name, 0) > 0:
+            self.borrowed_books[book_name] = self.borrowed_books.get(book_name, 0) + 1
+            save_to_json("borrow_books.json", self.borrowed_books)
+            print("Book borrowed successfully.")
+        else:
+            print("Book not available for borrowing.")
 
-    def donatebook_by_student(self, bookname, qunantity):
-        try:
-            if bookname not in self.totalbooks:
-                self.totalbooks[bookname] = qunantity
-            else:
-                self.totalbooks[bookname] = self.totalbooks[bookname] + qunantity
-            save_to_json("library_inventry.json", self.totalbooks)
-        except Exception as e:
-            print("an error oucur", e)
+    def return_book(self, book_name):
+        """Returns a book to the inventory."""
+        if self.borrowed_books.get(book_name, 0) > 0:
+            self.borrowed_books[book_name] -= 1
+            save_to_json("borrow_books.json", self.borrowed_books)
+            print("Book returned successfully.")
+        else:
+            print("No record of borrowed book found.")
 
+    def donate_book(self, book_name, quantity):
+        """Allows students to donate books."""
+        self.total_books[book_name] = self.total_books.get(book_name, 0) + quantity
+        save_to_json("library_inventory.json", self.total_books)
+        print("Thank you for your donation!")
 
-"""this class for save records of students like name,date,bookname """
-
-
-class Library_record:
-    def __init__(self, avalable_inventry, library_record):
-        self.avalable_books = avalable_inventry
+class LibraryRecord:
+    """Manages student records."""
+    def __init__(self, available_books, library_record):
+        self.available_books = available_books
         self.library_record = library_record
 
-    def borrowbook(self):
-        while True:
-            student_name = input("enter student name: ")
-            if re.match(name_pattren, student_name):
-                break
-            else:
-                print("enter name again carefully and in wright format")
-        while True:
+    def borrow_book(self):
+        """Records a book borrowing event."""
+        student_name = input("Enter student name: ")
+        if re.match(name_pattern, student_name):
             book_name = input("Enter book name: ")
-            if re.match(bookname_pattren, book_name):
-                break
-            else:
-                print("enter bookname again carefully and in wright format")
-        while True:
-            student_mail = input("enter your mail: ")
-            if re.match(email_pattren, student_mail):
-                break
-            else:
-                print("enter email again carefully and in wright format")
-
-        try:
-            date = time
-            if book_name in self.avalable_books:
-                if self.avalable_books[book_name] > 0:
-                    if student_name in self.library_record:
-                        if len(self.library_record[student_name]) < 3:
-                            self.library_record[student_name].append(
-                                {
-                                    "date": date,
-                                    "bookname": book_name,
-                                    "mail": student_mail,
-                                }
-                            )
-                        else:
-                            print(
-                                "student allrady borrow three books so no more bookes borrow possible"
-                            )
-                    else:
-                        self.library_record[student_name] = []
-                        self.library_record[student_name].append(
-                            {"date": date, "bookname": book_name, "mail": student_mail}
+            if re.match(bookname_pattern, book_name):
+                student_email = input("Enter email: ")
+                if re.match(email_pattern, student_email):
+                    if book_name in self.available_books and self.available_books[book_name] > 0:
+                        self.library_record.setdefault(student_name, []).append(
+                            {"date": str(today_date), "book_name": book_name, "email": student_email}
                         )
-                    save_to_json("library_record.json", self.library_record)
-                    library1.borrow_a_book(book_name)
+                        save_to_json("library_record.json", self.library_record)
+                        library_inventory.borrow_book(book_name)
+                    else:
+                        print("Book not available.")
                 else:
-                    print("book not avlable")
+                    print("Invalid email format.")
             else:
-                print("sorry,book not avlable")
-        except Exception as e:
-            print("an error oucur", e)
-
-    def donatebook(self):
-        while True:
-            bookname = input("Enter book name to donate: ")
-            if re.match(bookname_pattren, bookname):
-                break
-            else:
-                print("enter book name again carefully and in wright format")
-        while True:
-            try:
-                qunantity = int(input("Enter book qunanty: "))
-                break
-            except:
-                print("enter book quantity in numbers")
-
-        library1.donatebook_by_student(bookname, qunantity)
-
-    def bookslist(self):
-        try:
-            for books,quantity in self.avalable_books.items():
-                if quantity>0:
-                    print(books)
-        except Exception as e:
-            print("error found", e)
-
-    def returnbook(self):
-        while True:
-            student_name = input("Enter your name: ")
-            if re.match(name_pattren, student_name):
-                break
-            else:
-                print("enter name again in wright formet")
-        while True:
-            book_name = input("Enter book name to return: ")
-            if re.match(bookname_pattren, book_name):
-                break
-            else:
-                print("enter bookname again in wright formet")
-
-        if student_name in self.library_record:
-            for items in self.library_record[student_name]:
-                if items["bookname"] == book_name:
-                    self.library_record[student_name].remove(items)
-                    library1.return_a_book(book_name)
-                    save_to_json("library_record.json", self.library_record)
-                    print("book returend")
-                    break
+                print("Invalid book name format.")
         else:
-            print("student name not found in record")
+            print("Invalid student name format.")
 
-    def viewrecord(self):
-        print(
-            """
-            1.view all student record
-            2.serch a student record
-              """
-        )
-        while True:
-            try:
-                userchoice = int(input("Enter your choice: "))
-                break
-            except:
-                print("enter choice aganin in numbers only")
-
-        if userchoice == 1:
-            for students_name in self.library_record:
-                print(students_name)
-                for items in self.library_record[students_name]:
-                    print(f"date:{items["date"]} book name:{items["bookname"]}")
-        elif userchoice == 2:
-            while True:
-                studentname = input("Enter student name: ")
-                if re.match(name_pattren, studentname):
-                    break
+    def return_book(self):
+        """Records a book return event."""
+        student_name = input("Enter student name: ")
+        if re.match(name_pattern, student_name):
+            book_name = input("Enter book name: ")
+            if re.match(bookname_pattern, book_name):
+                if student_name in self.library_record:
+                    for record in self.library_record[student_name]:
+                        if record["book_name"] == book_name:
+                            self.library_record[student_name].remove(record)
+                            library_inventory.return_book(book_name)
+                            save_to_json("library_record.json", self.library_record)
+                            print("Book returned successfully.")
+                            break
+                    else:
+                        print("Record not found.")
                 else:
-                    print("enter name again in wright formet")
-            print(studentname)
-            try:
-                for items in self.library_record[studentname]:
-                    print(f"date:{items["date"]} book name:{items["bookname"]}")
-            except:
-                print("name not found ")
+                    print("Student not found in records.")
+            else:
+                print("Invalid book name format.")
         else:
-            print("choice not match enter again 1 or 2 only")
+            print("Invalid student name format.")
 
-    def send_alert(self):
-        try:
-            for student_name in self.library_record:
-                for item in self.library_record[student_name]:
-                    converted_date_formet = datetime.datetime.strptime(
-                        item["date"], "%Y-%m-%d"
-                    ).date()
-                    if today_date_formet - converted_date_formet >= datetime.timedelta(
-                        days=15
-                    ):
-                        send_email(item["mail"], student_name)
-        except Exception as e:
-            print("error oucur", e)
+    def view_records(self):
+        """Displays student borrowing records."""
+        for student, records in self.library_record.items():
+            print(f"Student: {student}")
+            for record in records:
+                print(f"Date: {record['date']}, Book: {record['book_name']}")
 
+    def send_alerts(self):
+        """Sends email alerts for overdue books."""
+        for student_name, records in self.library_record.items():
+            for record in records:
+                borrowed_date = datetime.datetime.strptime(record['date'], "%Y-%m-%d").date()
+                if today_date - borrowed_date > datetime.timedelta(days=15):
+                    send_email(record['email'], student_name)
 
-library1 = Library_inventry(totalbooks, borrowbooks, avalable_inventry)
-library1_record = Library_record(avalable_inventry, library_record)
+# Create instances of the classes
+library_inventory = LibraryInventory(total_books, borrowed_books, available_inventory)
+library_record_manager = LibraryRecord(available_inventory, library_record)
 
+# Main application loop
 while True:
-    print("########## Welcome to library management app ##########")
-    print(
-        """
-                    Choose an option for any operation
-
-                    1. Manage library inventory
-                    2. Student record section
-                    3. Exit app
-          """
-    )
-    while True:
-        try:
-            user_choice = int(input("Enter a number 1, 2, 3: "))
-            break
-        except:
-            print("envalid choice, please enter number only")
-    if user_choice == 1:
+    print("\nWelcome to Library Management System")
+    print("1. Manage Library Inventory")
+    print("2. Manage Student Records")
+    print("3. Exit")
+    choice = input("Enter your choice: ")
+    
+    if choice == "1":
         while True:
-            print("########## Welcome to library inventory ##########")
-            print(
-                """
-                            Choose an option for any operation
-
-                            1. Check book status
-                            2. Add books to inventory
-                            3. Remove book from inventory
-                            4. View inventory books list
-                            5. Back to home manu
-                """
-            )
-            while True:
-                try:
-                    choice = int(input("choose an operation: "))
-                    break
-                except:
-                    print("envalid choice, please enter number only")
-            if choice == 1:
-                library1.check_book_status()
-            elif choice == 2:
-                library1.addbook_in_enventory()
-            elif choice == 3:
-                library1.bookremove_from_inventory()
-            elif choice == 4:
-                library1.inventory_bookslist()
-            elif choice == 5:
+            print("\nLibrary Inventory Management")
+            print("1. List Inventory")
+            print("2. Check Book Status")
+            print("3. Add Book")
+            print("4. Remove Book")
+            print("5. Back to Main Menu")
+            sub_choice = input("Enter your choice: ")
+            
+            if sub_choice == "1":
+                library_inventory.list_inventory()
+            elif sub_choice == "2":
+                library_inventory.check_book_status()
+            elif sub_choice == "3":
+                library_inventory.add_book()
+            elif sub_choice == "4":
+                library_inventory.remove_book()
+            elif sub_choice == "5":
                 break
             else:
-                print("Enter choice between 1-5, carefully")
+                print("Invalid choice. Please try again.")
 
-    elif user_choice == 2:
+    elif choice == "2":
         while True:
-            print("########## Welcome to student record section ##########")
-            print(
-                """
-                            Choose an option for any operation
-
-                            1. View student record
-                            2. Borrow book
-                            3. View available books
-                            4. Donate book
-                            5. Return book
-                            6. Send alert 
-                            7. Back to home manu
-            """
-            )
-            while True:
-                try:
-                    choice2 = int(input("choose an operation: "))
-                    break
-                except:
-                    print("envalid choice, please enter number only")
-            if choice2 == 1:
-                library1_record.viewrecord()
-            elif choice2 == 2:
-                library1_record.borrowbook()
-            elif choice2 == 3:
-                library1_record.bookslist()
-            elif choice2 == 4:
-                library1_record.donatebook()
-            elif choice2 == 5:
-                library1_record.returnbook()
-            elif choice2 == 6:
-                library1_record.send_alert()
-            elif choice2 == 7:
+            print("\nStudent Records Management")
+            print("1. Borrow Book")
+            print("2. Return Book")
+            print("3. View Records")
+            print("4. Send Alerts")
+            print("5. Back to Main Menu")
+            sub_choice = input("Enter your choice: ")
+            
+            if sub_choice == "1":
+                library_record_manager.borrow_book()
+            elif sub_choice == "2":
+                library_record_manager.return_book()
+            elif sub_choice == "3":
+                library_record_manager.view_records()
+            elif sub_choice == "4":
+                library_record_manager.send_alerts()
+            elif sub_choice == "5":
                 break
             else:
-                print("Enter choice between 1-6,carefully")
+                print("Invalid choice. Please try again.")
 
-    elif user_choice == 3:
+    elif choice == "3":
+        print("Exiting the system. Goodbye!")
         break
     else:
-        print("enter a choice between 1-3")
+        print("Invalid choice. Please try again.")
